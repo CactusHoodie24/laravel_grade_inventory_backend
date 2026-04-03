@@ -6,6 +6,7 @@ use App\Models\Item;
 use App\Models\Transaction;
 use App\Models\StockRequest;
 use Illuminate\Support\Facades\DB;
+use App\Events\RequestApproved;
 
 class ItemService
 {
@@ -72,6 +73,7 @@ public function addStock(int $itemId, int $warehouseId, int $quantity): array
             ->where('item_id', $itemId)
             ->where('warehouse_id', $warehouseId)
             ->first();
+
 
         return [
             'item_id'      => $itemId,
@@ -167,6 +169,8 @@ public function addStock(int $itemId, int $warehouseId, int $quantity): array
                 'status'      => 'APPROVED',
                 'approved_by' => $approverId,
             ]);
+
+             RequestApproved::dispatch($request);
 
             return $request;
         });
