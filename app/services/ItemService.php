@@ -7,6 +7,7 @@ use App\Models\Transaction;
 use App\Models\StockRequest;
 use Illuminate\Support\Facades\DB;
 use App\Events\RequestApproved;
+use App\Events\LowStockDetected; 
 
 class ItemService
 {
@@ -89,7 +90,6 @@ public function addStock(int $itemId, int $warehouseId, int $quantity): array
         $this->validateQuantity($quantity);
 
         DB::transaction(function () use ($itemId, $warehouseId, $quantity) {
-            // Lock the row to prevent race conditions
             $record = DB::table('item_warehouse')
                 ->where('item_id', $itemId)
                 ->where('warehouse_id', $warehouseId)
@@ -105,14 +105,22 @@ public function addStock(int $itemId, int $warehouseId, int $quantity): array
                 ->where('warehouse_id', $warehouseId)
                 ->decrement('quantity', $quantity);
 
+            $updatedQuantity = $record->quantity - $quantity;
+            $threshold = $record->threshold;
+
             Transaction::create([
                 'item_id'      => $itemId,
                 'warehouse_id' => $warehouseId,
                 'quantity'     => $quantity,
                 'type'         => 'OUT',
             ]);
+
+            if ($updatedQuantity !== null && $threshold !== null && $updatedQuantity <= $threshold) {
+                LowStockDetected::dispatch($record);
+            }
         });
-    }
+    }  // ← this closing brace was missing
+
 
     // -------------------------------------------------------
     // Stock Requests

@@ -76,10 +76,10 @@ public function addStock(Request $request, $id) {
 
 public function removeStock(Request $request, $id) {
     try {
-       $item = $this->itemService->removeStock($id, $request->quantity, $request->warehouseId);
-       return response()->json($item);
+        $item = $this->itemService->removeStock($id, $request->warehouseId, $request->quantity);
+        return response()->json($item);
     } catch (\Exception $e) {
-       return response()->json([
+        return response()->json([
             'message' => $e->getMessage()
         ], 400);
     }
