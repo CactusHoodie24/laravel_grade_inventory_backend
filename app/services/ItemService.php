@@ -7,7 +7,8 @@ use App\Models\Transaction;
 use App\Models\StockRequest;
 use Illuminate\Support\Facades\DB;
 use App\Events\RequestApproved;
-use App\Events\LowStockDetected; 
+use App\Events\LowStockDetected;
+use App\Models\ActivityLog;
 
 class ItemService
 {
@@ -177,6 +178,21 @@ public function addStock(int $itemId, int $warehouseId, int $quantity): array
                 'status'      => 'APPROVED',
                 'approved_by' => $approverId,
             ]);
+
+            ActivityLog::create([
+    'user_id' => auth()->id(),
+    'action' => 'request_approved',
+    'data' => json_encode([
+        'request_id' => $request->id,
+        'item_id' => $request->item_id,
+        'warehouse_id' => $request->warehouse_id
+    ])
+]);
+
+            Log::withContext([
+    'user_id' => auth()->id(),
+    'ip' => request()->ip(),
+]);
 
              RequestApproved::dispatch($request);
 

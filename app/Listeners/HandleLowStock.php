@@ -22,10 +22,11 @@ class HandleLowStock
     public function handle(LowStockDetected $event): void
     {
         //
-         Log::warning('Low stock detected', [
-        'item_id' => $event->itemId,
-        'warehouse_id' => $event->warehouseId,
-        'quantity' => $event->quantity
-    ]);
+    Log::channel('stack')->warning('low_stock_detected', [
+    'item_id' => $event->itemId,
+    'warehouse_id' => $event->warehouseId,
+    'quantity' => $event->quantity,
+    'timestamp' => now()->toDateTimeString()
+]);
     }
 }
