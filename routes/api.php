@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SupplyController;
+use App\Http\Controllers\SupplierController;
 
 Route::get('/test', function () {
     return response()->json([
@@ -12,13 +14,15 @@ Route::get('/test', function () {
 });
 
 Route::get('/items', [ItemController::class, 'index']);
+Route::get('/suppliers', [SupplierController::class, 'index']);
 Route::get('/items/{id}', [ItemController::class, 'show']);
 Route::put('/items/{id}', [ItemController::class, 'update']);
 Route::delete('/items/{id}', [ItemController::class, 'destroy']);
 Route::post('/items/{id}/add-stock', [ItemController::class, 'addStock']);
 Route::post('/items/{id}/remove-stock', [ItemController::class, 'removeStock']);
-Route::middleware(['auth:sanctum', 'role:clerk'])->group(function () {
+Route::middleware(['auth.debug','auth:sanctum', 'role:clerk'])->group(function () {
     Route::post('/items/{id}/request', [ItemController::class, 'requestStock']);
+    Route::post('/supplies', [SupplyController::class, 'store']);
 });
 Route::middleware(['auth:sanctum', 'role:section_head'])->group(function () {
 
@@ -28,12 +32,13 @@ Route::middleware(['auth:sanctum', 'role:section_head'])->group(function () {
 
 });
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/refresh-token', [AuthController::class, 'refresh']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 Route::middleware('auth:sanctum')->group(function () {
-
     Route::get('/reports/stock', [ReportController::class, 'stockSummary']);
     Route::get('/reports/usage', [ReportController::class, 'stockUsage']);
     Route::get('/reports/transactions', [ReportController::class, 'transactions']);
     Route::get('/reports/requests', [ReportController::class, 'requestStats']);
-
 });
+
